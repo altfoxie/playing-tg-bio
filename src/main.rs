@@ -22,7 +22,7 @@ async fn main() {
     .unwrap();
 
     let config = Config::load_or_create(PathBuf::from("config.json"));
-    if config.app_id == 0 || config.app_hash.is_empty() {
+    if config.api_id == 0 || config.api_hash.is_empty() {
         log::error!("looks like the config is not set up");
         return;
     }

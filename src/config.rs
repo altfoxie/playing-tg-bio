@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    pub app_id: i32,
-    pub app_hash: String,
+    pub api_id: i32,
+    pub api_hash: String,
     pub interval_secs: u64,
     pub bio_template: String,
 }
@@ -13,8 +13,8 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            app_id: 123456789,
-            app_hash: "".to_string(),
+            api_id: 123456789,
+            api_hash: "".to_string(),
             interval_secs: 60,
             bio_template: "▶️ {artist} - {title} ({progress} / {duration})".to_string(),
         }

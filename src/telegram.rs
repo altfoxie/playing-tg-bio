@@ -15,8 +15,8 @@ static RECONNECTION_POLICY: &dyn ReconnectionPolicy = &FixedReconnect {
 pub async fn create_client(config: &Config) -> anyhow::Result<Client> {
     Ok(Client::connect(grammers_client::Config {
         session: Session::load_file_or_create("session.bin")?,
-        api_id: config.app_id,
-        api_hash: config.app_hash.to_string(),
+        api_id: config.api_id,
+        api_hash: config.api_hash.to_string(),
         params: grammers_client::InitParams {
             reconnection_policy: RECONNECTION_POLICY,
             ..Default::default()

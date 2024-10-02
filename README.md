@@ -14,7 +14,7 @@ cargo build --release
 
 ## Запуск
 
-При первом запуске создаётся файл `config.json` с настройками. Нужно получить `app_id` и `app_hash` для доступа к Telegram API [тут](https://my.telegram.org/).
+При первом запуске создаётся файл `config.json` с настройками. Нужно получить `api_id` и `api_hash` для доступа к Telegram API [тут](https://my.telegram.org/).
 
 `interval_secs` - интервал обновления в секундах.
 
