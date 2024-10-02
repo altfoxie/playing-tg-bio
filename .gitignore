@@ -1,0 +1,6 @@
+/target
+.env
+/config.json
+/session.bin
+/token.json
+/.vscode
