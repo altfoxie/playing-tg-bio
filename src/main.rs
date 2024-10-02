@@ -21,7 +21,7 @@ async fn main() {
     )
     .unwrap();
 
-    let config = Config::load_or_create(PathBuf::from("config.json"));
+    let config = Config::load_or_create(PathBuf::from("config.json")).expect("failed to load config");
     if config.api_id == 0 || config.api_hash.is_empty() {
         log::error!("looks like the config is not set up");
         return;

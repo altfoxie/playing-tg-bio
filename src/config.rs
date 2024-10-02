@@ -22,14 +22,14 @@ impl Default for Config {
 }
 
 impl Config {
-    pub fn load_or_create(path: PathBuf) -> Self {
+    pub fn load_or_create(path: PathBuf) -> anyhow::Result<Self> {
         if !path.exists() {
             let cfg = Self::default();
-            let serialized = serde_json::to_string_pretty(&cfg).unwrap();
-            std::fs::write(&path, serialized).unwrap();
+            let serialized = serde_json::to_string_pretty(&cfg)?;
+            std::fs::write(&path, serialized)?;
         }
 
-        let serialized = std::fs::read_to_string(path).unwrap();
-        serde_json::from_str(&serialized).unwrap()
+        let serialized = std::fs::read_to_string(path)?;
+        Ok(serde_json::from_str(&serialized)?)
     }
 }
