@@ -28,7 +28,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             interval: 60,
-            template: "▶️ {artist} - {title} ({progress} / {duration})".to_string(),
+            template: "{artist} — {title} [{progress} / {duration}]".to_string(),
             default: "nothing playing".to_string(),
             telegram: TelegramConfig::Bio {
                 api_id: 123456789,
