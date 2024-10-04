@@ -1,22 +1,25 @@
-use std::{io::BufRead, time::Duration};
+use std::{io::BufRead, sync::LazyLock, time::Duration};
 
 use anyhow::Context;
+use async_trait::async_trait;
 use grammers_client::{Client, FixedReconnect, ReconnectionPolicy, SignInError};
 use grammers_session::Session;
 use grammers_tl_types::functions::account::UpdateProfile;
+use serde::Deserialize;
+use serde_json::json;
 
-use crate::config::Config;
+static CLIENT: LazyLock<reqwest::Client> = LazyLock::new(reqwest::Client::new);
 
-static RECONNECTION_POLICY: &dyn ReconnectionPolicy = &FixedReconnect {
+static RECONNECTION_POLICY: &'static dyn ReconnectionPolicy = &FixedReconnect {
     attempts: 10,
     delay: Duration::from_secs(1),
 };
 
-pub async fn create_client(config: &Config) -> anyhow::Result<Client> {
+pub async fn create_client(api_id: i32, api_hash: String) -> anyhow::Result<Client> {
     Ok(Client::connect(grammers_client::Config {
         session: Session::load_file_or_create("session.bin")?,
-        api_id: config.api_id,
-        api_hash: config.api_hash.to_string(),
+        api_id,
+        api_hash,
         params: grammers_client::InitParams {
             reconnection_policy: RECONNECTION_POLICY,
             ..Default::default()
@@ -76,4 +79,60 @@ pub async fn update_bio(client: &Client, bio: String) -> anyhow::Result<()> {
         .await?;
 
     Ok(())
+}
+
+pub async fn update_channel_message(
+    token: String,
+    channel_id: i64,
+    message_id: i64,
+    text: String,
+) -> anyhow::Result<()> {
+    #[derive(Deserialize)]
+    struct Response {
+        ok: bool,
+    }
+
+    let response = CLIENT
+        .post(format!("https://api.telegram.org/bot{}/editMessageText", token))
+        .json(&json!({
+            "chat_id": channel_id,
+            "message_id": message_id,
+            "text": text,
+        }))
+        .send()
+        .await?
+        .json::<Response>()
+        .await?;
+
+    if !response.ok {
+        anyhow::bail!("not ok");
+    }
+    Ok(())
+}
+
+#[async_trait]
+pub trait Updater {
+    async fn update(&self, text: String) -> anyhow::Result<()>;
+}
+
+pub struct BioUpdater(pub Client);
+
+#[async_trait]
+impl Updater for BioUpdater {
+    async fn update(&self, text: String) -> anyhow::Result<()> {
+        update_bio(&self.0, text).await
+    }
+}
+
+pub struct ChannelUpdater {
+    pub token: String,
+    pub channel_id: i64,
+    pub message_id: i64,
+}
+
+#[async_trait]
+impl Updater for ChannelUpdater {
+    async fn update(&self, text: String) -> anyhow::Result<()> {
+        update_channel_message(self.token.clone(), self.channel_id, self.message_id, text).await
+    }
 }

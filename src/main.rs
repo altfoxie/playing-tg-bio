@@ -1,9 +1,10 @@
 use std::{path::PathBuf, time::Duration};
 
-use config::Config;
+use config::{Config, TelegramConfig};
 use log::LevelFilter;
 use simplelog::TermLogger;
 use spotify::{Client, FileTokenStorage};
+use telegram::Updater;
 
 mod config;
 mod spotify;
@@ -22,15 +23,27 @@ async fn main() {
     .unwrap();
 
     let config = Config::load_or_create(PathBuf::from("config.json")).expect("failed to load config");
-    if config.api_id == 0 || config.api_hash.is_empty() {
-        log::error!("looks like the config is not set up");
-        return;
-    }
 
-    let tg = telegram::create_client(&config)
-        .await
-        .expect("failed to create telegram client");
-    telegram::authorize(&tg).await.expect("failed to authorize");
+    let updater: Box<dyn Updater> = match config.telegram {
+        TelegramConfig::Bio { api_id, api_hash, .. } => {
+            let client = telegram::create_client(api_id, api_hash)
+                .await
+                .expect("failed to create telegram client");
+            telegram::authorize(&client).await.expect("failed to authorize");
+            Box::new(telegram::BioUpdater(client))
+        }
+
+        TelegramConfig::Channel {
+            token,
+            channel_id,
+            message_id,
+            ..
+        } => Box::new(telegram::ChannelUpdater {
+            token,
+            channel_id,
+            message_id,
+        }),
+    };
 
     let storage = FileTokenStorage::load_or_create(PathBuf::from("token.json")).expect("failed to load token storage");
 
@@ -41,10 +54,11 @@ async fn main() {
     );
     spotify.authorize().await.expect("failed to authorize");
 
-    let mut interval = tokio::time::interval(Duration::from_secs(config.interval_secs));
+    let mut interval = tokio::time::interval(Duration::from_secs(config.interval));
     interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 
-    let mut last_bio = String::new();
+    let mut last_text = String::new();
+
     loop {
         interval.tick().await;
 
@@ -56,35 +70,39 @@ async fn main() {
             }
         };
 
-        if let Some(track) = track {
-            log::info!("current track: {track:?}");
+        let text = match track {
+            Some(track) => {
+                log::info!("current track: {track:?}");
 
-            fn format_duration(duration: Duration) -> String {
-                let total_seconds = duration.as_secs();
-                let minutes = total_seconds / 60;
-                let seconds = total_seconds % 60;
-                format!("{minutes}:{seconds:02}")
-            }
-
-            let bio = config
-                .bio_template
-                .replace("{artist}", &track.artists.join(", "))
-                .replace("{title}", &track.title)
-                .replace("{progress}", &format_duration(track.progress))
-                .replace("{duration}", &format_duration(track.duration));
-
-            if bio == last_bio {
-                log::info!("bio is the same as last time, skipping update");
-                continue;
-            }
-
-            match telegram::update_bio(&tg, bio.clone()).await {
-                Ok(_) => {
-                    last_bio = bio;
-                    log::info!("bio updated successfully")
+                fn format_duration(duration: Duration) -> String {
+                    let total_seconds = duration.as_secs();
+                    let minutes = total_seconds / 60;
+                    let seconds = total_seconds % 60;
+                    format!("{minutes}:{seconds:02}")
                 }
-                Err(e) => log::error!("failed to update bio: {e}"),
+
+                config
+                    .template
+                    .replace("{artist}", &track.artists.join(", "))
+                    .replace("{title}", &track.title)
+                    .replace("{progress}", &format_duration(track.progress))
+                    .replace("{duration}", &format_duration(track.duration))
             }
+
+            None => config.default.clone(),
+        };
+
+        if text == last_text {
+            log::info!("text is the same as last time, skipping update");
+            continue;
+        }
+
+        match updater.update(text.clone()).await {
+            Ok(_) => {
+                last_text = text;
+                log::info!("updated successfully")
+            }
+            Err(e) => log::error!("failed to update: {e}"),
         }
     }
 }

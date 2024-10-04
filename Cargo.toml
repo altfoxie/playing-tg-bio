@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.89"
+async-trait = "0.1.83"
 form_urlencoded = "1.2.1"
 grammers-client = "0.7.0"
 grammers-mtsender = "0.7.0"

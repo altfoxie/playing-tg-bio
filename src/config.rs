@@ -4,19 +4,36 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
-    pub api_id: i32,
-    pub api_hash: String,
-    pub interval_secs: u64,
-    pub bio_template: String,
+    pub interval: u64,
+    pub template: String,
+    pub default: String,
+    pub telegram: TelegramConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum TelegramConfig {
+    #[serde(rename = "bio")]
+    Bio { api_id: i32, api_hash: String },
+
+    #[serde(rename = "channel")]
+    Channel {
+        token: String,
+        channel_id: i64,
+        message_id: i64,
+    },
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            api_id: 123456789,
-            api_hash: "".to_string(),
-            interval_secs: 60,
-            bio_template: "▶️ {artist} - {title} ({progress} / {duration})".to_string(),
+            interval: 60,
+            template: "▶️ {artist} - {title} ({progress} / {duration})".to_string(),
+            default: "nothing playing".to_string(),
+            telegram: TelegramConfig::Bio {
+                api_id: 123456789,
+                api_hash: "".to_string(),
+            },
         }
     }
 }
