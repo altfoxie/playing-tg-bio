@@ -3,6 +3,8 @@
 Выводит текущий трек из Spotify в Telegram.  
 Сделано по просьбе @omar1ck :D
 
+![Demo](demo_channel.png)
+
 ## Сборка
 
 Для сборки необходимо заполнить переменные окружения `SPOTIFY_CLIENT_ID` и `SPOTIFY_CLIENT_SECRET`.
