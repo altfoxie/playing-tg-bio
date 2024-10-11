@@ -910,6 +910,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
+name = "playing-tg-bio"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "form_urlencoded",
+ "grammers-client",
+ "grammers-mtsender",
+ "grammers-session",
+ "grammers-tl-types",
+ "log",
+ "osakit",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "simplelog",
+ "tiny_http",
+ "tokio",
+]
+
+[[package]]
 name = "powerfmt"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1273,27 +1294,6 @@ name = "spin"
 version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
-
-[[package]]
-name = "spotify-tg-bio"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "form_urlencoded",
- "grammers-client",
- "grammers-mtsender",
- "grammers-session",
- "grammers-tl-types",
- "log",
- "osakit",
- "reqwest",
- "serde",
- "serde_json",
- "simplelog",
- "tiny_http",
- "tokio",
-]
 
 [[package]]
 name = "subtle"
