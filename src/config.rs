@@ -4,10 +4,20 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
+    pub service: Service,
     pub interval: u64,
     pub template: String,
     pub default: String,
     pub telegram: TelegramConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Service {
+    #[serde(rename = "spotify")]
+    Spotify,
+    #[cfg(target_os = "macos")]
+    #[serde(rename = "apple_music")]
+    AppleMusic,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +37,7 @@ pub enum TelegramConfig {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            service: Service::Spotify,
             interval: 60,
             template: "{artist} — {title} [{progress} / {duration}]".to_string(),
             default: "nothing playing".to_string(),

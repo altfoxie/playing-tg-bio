@@ -4,6 +4,8 @@ use anyhow::Context;
 use reqwest::{StatusCode, Url};
 use serde::Deserialize;
 
+use crate::UnifiedTrack;
+
 use super::{Token, TokenStorage};
 
 pub struct Client<T: TokenStorage> {
@@ -20,6 +22,17 @@ pub struct Track {
     pub is_playing: bool,
     pub progress: Duration,
     pub duration: Duration,
+}
+
+impl From<Track> for UnifiedTrack {
+    fn from(val: Track) -> Self {
+        UnifiedTrack {
+            artist: val.artists.join(", "),
+            title: val.title,
+            progress: val.progress,
+            duration: val.duration,
+        }
+    }
 }
 
 #[derive(Deserialize)]
