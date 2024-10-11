@@ -50,6 +50,7 @@ impl Default for AppleMusicProvider {
     }
 }
 
+#[cfg(target_os = "macos")]
 impl AppleMusicProvider {
     pub fn new() -> Self {
         Self {
@@ -92,6 +93,7 @@ async fn main() {
             Box::new(SpotifyProvider::new(client))
         }
 
+        #[cfg(target_os = "macos")]
         Service::AppleMusic => Box::new(AppleMusicProvider::new()),
     };
 
